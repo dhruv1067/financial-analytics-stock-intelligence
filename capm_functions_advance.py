@@ -62,5 +62,50 @@ def daily_return(df):
     # Reset the index to turn 'Date' back into a column
     return df_daily_return.reset_index()
 
+def calculate_beta(stocks_daily_return, stock):
+    """
+    Calculates beta and alpha using numpy.polyfit.
+    """
+    # 'sp500' is the independent variable (x)
+    # 'stock' is the dependent variable (y)
+    # np.polyfit(x, y, 1) fits a 1st-degree polynomial (a line)
+    # and returns [slope, intercept]
+    
+    b, a = np.polyfit(stocks_daily_return['sp500'], stocks_daily_return[stock], 1)
+    
+    # b = slope = Beta
+    # a = intercept = Alpha
+    return b, a
 
+def beta_regression_plot(returns_df, stock_ticker, beta, alpha):
+    """
+    Creates a scatter plot of stock returns vs. market returns
+    and adds the regression line (beta).
+    """
+    # Create the scatter plot
+    fig = px.scatter(
+        returns_df,
+        x='sp500',
+        y=stock_ticker,
+        title=f'{stock_ticker} vs. S&P 500 (Beta: {beta:.2f})',
+        labels={'sp500': 'S&P 500 Daily Return (%)', stock_ticker: f'{stock_ticker} Daily Return (%)'}
+    )
+    
+    # Add the regression line
+    # Create x-values for the line
+    x_line = np.array([returns_df['sp500'].min(), returns_df['sp500'].max()])
+
+    # Calculate corresponding y-values
+    y_line = x_line * beta + alpha
+    
+    # Add the line to the figure
+    fig.add_trace(go.Scatter(
+        x=x_line,
+        y=y_line,
+        mode='lines',
+        name='Regression Line (Beta)',
+        line=dict(color='red', dash='dash')
+    ))
+    
+    return fig
 
